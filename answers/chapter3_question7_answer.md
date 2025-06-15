@@ -1,197 +1,120 @@
-# LL(1) Grammar Analysis
+# LL(1) Grammars
 
-This document explains LL(1) grammars and analyzes whether the given grammar is LL(1).
-
----
-
-## a) What is an LL(1) Grammar?
-
-### Definition
-
-An **LL(1) grammar** is a context-free grammar that can be parsed by an LL(1) parser. The notation "LL(1)" stands for:
-- **L**: Left-to-right scanning of input
-- **L**: Leftmost derivation
-- **1**: One symbol of lookahead
-
-### Characteristics of LL(1) Grammars
-
-1. **Deterministic Parsing:** For any non-terminal and any input symbol, there is at most one production rule that can be applied.
-
-2. **No Left Recursion:** LL(1) grammars cannot have left recursion (direct or indirect).
-
-3. **Left Factored:** All common prefixes must be factored out.
-
-4. **Unambiguous:** LL(1) grammars are always unambiguous.
-
-### Formal Conditions for LL(1)
-
-A grammar G is LL(1) if and only if for every non-terminal A with productions A → α₁ | α₂ | ... | αₙ, the following conditions hold:
-
-1. **FIRST sets are disjoint:** FIRST(αᵢ) ∩ FIRST(αⱼ) = ∅ for all i ≠ j
-
-2. **FIRST-FOLLOW condition:** If ε ∈ FIRST(αᵢ) for some i, then:
-   - FIRST(αⱼ) ∩ FOLLOW(A) = ∅ for all j ≠ i
-   - At most one αᵢ can derive ε
-
-### LL(1) Parsing Table
-
-An LL(1) parser uses a parsing table M[A, a] where:
-- A is a non-terminal
-- a is a terminal or $
-- M[A, a] contains the production to use when A is on top of stack and a is the current input symbol
-
-**Table Construction Rules:**
-1. For each production A → α:
-   - For each terminal a ∈ FIRST(α), add A → α to M[A, a]
-   - If ε ∈ FIRST(α), then for each b ∈ FOLLOW(A), add A → α to M[A, b]
-
-2. If there are multiple entries for any M[A, a], the grammar is not LL(1)
+This document defines what an LL(1) grammar is and then checks if a given grammar satisfies the LL(1) condition.
 
 ---
 
-## b) Checking if the Given Grammar is LL(1)
+## a) What is an LL(1) grammar?
 
-### Given Grammar
+An **LL(1) grammar** is a type of context-free grammar that can be parsed by an LL(1) parser. The name "LL(1)" stands for:
 
+*   **L (first L):** The input is scanned from **L**eft to right.
+*   **L (second L):** The parser produces a **L**eftmost derivation.
+*   **(1):** The parser uses **1** token of lookahead to make parsing decisions.
+
+A grammar is formally defined as LL(1) if, for any non-terminal `A` with two or more distinct productions `A -> α` and `A -> β`, the following conditions hold:
+
+**Condition 1: Disjoint FIRST Sets**
+*   The sets of terminals that can be derived at the beginning of `α` and `β` must be disjoint. In other words, `FIRST(α) ∩ FIRST(β) = ∅`.
+*   This condition ensures that if we see a token `t` in the input, at most one of `α` or `β` can produce a string starting with `t`.
+
+**Condition 2: Handling Nullable Productions (ε)**
+*   If one of the productions can derive the empty string (ε), say `β -> ε`, then the set of terminals that can begin `α` must be disjoint from the set of terminals that can *follow* the non-terminal `A`.
+*   Formally, if `ε` is in `FIRST(β)`, then `FIRST(α) ∩ FOLLOW(A) = ∅`.
+*   This condition resolves ambiguity when a production for `A` could derive nothing (`ε`). If the current input token is something that can follow `A` in a valid sentence, the parser should choose the `A -> ε` production. If the current input token can be at the start of another production for `A`, it should choose that one. This condition ensures there's no overlap, so the parser can make a unique choice.
+
+In short, for any non-terminal, a parser looking at the next single input token must be able to uniquely decide which production rule to apply. If it can, the grammar is LL(1). LL(1) grammars are a subset of context-free grammars and are important because they can be parsed efficiently in linear time by non-backtracking predictive parsers.
+
+---
+
+## b) Check whether the given grammar is LL(1) or not
+
+**Grammar:**
 ```
-S → i E t S S' | a
-S' → e S | ε
-E → b
+1. S -> i E t S S' | a
+2. S'-> e S | ε
+3. E -> b
 ```
 
-Where:
-- i = if
-- t = then  
-- e = else
-- a, b = other terminals
+The non-terminals are {S, S', E}. The terminals are {i, t, a, e, b}. S is the start symbol.
 
-### Step 1: Check for Left Recursion
+To check if this grammar is LL(1), we must compute the FIRST and FOLLOW sets for each non-terminal and then check the two conditions for every non-terminal that has more than one production. In this grammar, only `S` and `S'` have multiple productions.
 
-**Analysis:** None of the productions have left recursion.
-- S → i E t S S' (starts with terminal i)
-- S → a (starts with terminal a)
-- S' → e S (starts with terminal e)
-- S' → ε (epsilon production)
-- E → b (starts with terminal b)
+### Step 1: Compute FIRST Sets
 
-✓ **No left recursion found.**
+*   **FIRST(E):**
+    *   From `E -> b`: 'b' is a terminal.
+    *   `FIRST(E) = {b}`
 
-### Step 2: Compute FIRST Sets
+*   **FIRST(S'):**
+    *   From `S' -> e S`: 'e' is a terminal.
+    *   From `S' -> ε`: ε is a production.
+    *   `FIRST(S') = {e, ε}`
 
-**FIRST(S):**
-- From S → i E t S S': Add {i}
-- From S → a: Add {a}
-- **FIRST(S) = {i, a}**
+*   **FIRST(S):**
+    *   From `S -> i E t S S'`: 'i' is a terminal.
+    *   From `S -> a`: 'a' is a terminal.
+    *   `FIRST(S) = {i, a}`
 
-**FIRST(S'):**
-- From S' → e S: Add {e}
-- From S' → ε: Add {ε}
-- **FIRST(S') = {e, ε}**
+**Summary of FIRST Sets:**
+*   FIRST(S) = {i, a}
+*   FIRST(S') = {e, ε}
+*   FIRST(E) = {b}
 
-**FIRST(E):**
-- From E → b: Add {b}
-- **FIRST(E) = {b}**
+### Step 2: Compute FOLLOW Sets
 
-### Step 3: Compute FOLLOW Sets
+*   **FOLLOW(S):**
+    *   S is the start symbol, so `$` is in `FOLLOW(S)`.
+    *   In `S' -> e S`, S is at the end, so `FOLLOW(S')` is in `FOLLOW(S)`.
+    *   We need `FOLLOW(S')` first.
 
-**FOLLOW(S):**
-- S is the start symbol: Add {$}
-- From S → i E t S S': S is followed by S'
-  - Add FIRST(S') - {ε} = {e} to FOLLOW(S)
-  - Since ε ∈ FIRST(S'), add FOLLOW(S) to FOLLOW(S) (no new info)
-- From S' → e S: S is at the end
-  - Add FOLLOW(S') to FOLLOW(S)
-- **FOLLOW(S) = {$, e} ∪ FOLLOW(S')**
+*   **FOLLOW(S'):**
+    *   In `S -> i E t S S'`, S' is at the end, so `FOLLOW(S)` is in `FOLLOW(S')`.
 
-**FOLLOW(S'):**
-- From S → i E t S S': S' is at the end
-  - Add FOLLOW(S) = {$, e} ∪ FOLLOW(S') to FOLLOW(S')
-- This creates a dependency. Let's solve it:
-- **FOLLOW(S') = {$, e}** (since S' appears at the end of S productions)
-- Therefore: **FOLLOW(S) = {$, e}**
+*   **FOLLOW(E):**
+    *   In `S -> i E t S S'`, E is followed by the terminal 't'.
+    *   `FOLLOW(E) = {t}`
 
-**FOLLOW(E):**
-- From S → i E t S S': E is followed by t
-  - Add {t} to FOLLOW(E)
-- **FOLLOW(E) = {t}**
+Now we resolve the circular dependency between `FOLLOW(S)` and `FOLLOW(S')`.
+*   Initially: `FOLLOW(S) = {$}` and `FOLLOW(S') = {}`.
+*   **Pass 1:**
+    *   `FOLLOW(S')` gets `FOLLOW(S)`, so `FOLLOW(S') = {$}`.
+    *   `FOLLOW(S)` gets `FOLLOW(S')`, so `FOLLOW(S)` is still `{$}`.
+*   **Pass 2:**
+    *   `FOLLOW(S')` gets `FOLLOW(S)`, no change.
+    *   `FOLLOW(S)` gets `FOLLOW(S')`, no change.
 
-### Step 4: Check LL(1) Conditions
+The sets have stabilized.
+
+**Summary of FOLLOW Sets:**
+*   FOLLOW(S) = {$}
+*   FOLLOW(S') = {$}
+*   FOLLOW(E) = {t}
+
+### Step 3: Check LL(1) Conditions
+
+We only need to check the conditions for non-terminals `S` and `S'`, as they are the only ones with multiple productions.
 
 **For non-terminal S:**
-Productions: S → i E t S S' | a
+The productions are `S -> α` where `α = i E t S S'` and `S -> β` where `β = a`.
 
-- FIRST(i E t S S') = {i}
-- FIRST(a) = {a}
-- FIRST(i E t S S') ∩ FIRST(a) = {i} ∩ {a} = ∅ ✓
+*   `FIRST(α) = FIRST(i E t S S') = {i}`
+*   `FIRST(β) = FIRST(a) = {a}`
+*   **Check Condition 1:** `FIRST(α) ∩ FIRST(β) = {i} ∩ {a} = ∅`.
+*   This condition holds for S. Neither production is nullable, so Condition 2 is not applicable.
 
 **For non-terminal S':**
-Productions: S' → e S | ε
+The productions are `S' -> α` where `α = e S` and `S' -> β` where `β = ε`.
 
-- FIRST(e S) = {e}
-- FIRST(ε) = {ε}
-- FIRST(e S) ∩ FIRST(ε) = {e} ∩ {ε} = ∅ ✓
-
-Since ε ∈ FIRST(ε), check FIRST-FOLLOW condition:
-- FIRST(e S) ∩ FOLLOW(S') = {e} ∩ {$, e} = {e} ≠ ∅ ✗
-
-**For non-terminal E:**
-Productions: E → b
-
-- Only one production, so trivially satisfies LL(1) conditions ✓
-
-### Step 5: Construct LL(1) Parsing Table
-
-| Non-terminal | i | a | e | b | t | $ |
-|--------------|---|---|---|---|---|---|
-| S | S → i E t S S' | S → a | | | | |
-| S' | | | S' → e S, S' → ε | | | S' → ε |
-| E | | | | E → b | | |
-
-**Conflict detected:** M[S', e] has two entries:
-- S' → e S (from FIRST(e S))
-- S' → ε (from FOLLOW(S') since ε ∈ FIRST(ε))
+*   `FIRST(α) = FIRST(e S) = {e}`
+*   `FIRST(β) = FIRST(ε) = {ε}`
+*   One production derives `ε`, so we must check Condition 2.
+*   **Check Condition 2:** `FIRST(α) ∩ FOLLOW(S') = ∅` ?
+    *   `FIRST(α) = {e}`
+    *   `FOLLOW(S') = {$}`
+    *   `{e} ∩ {$} = ∅`.
+*   This condition holds for S'. Condition 1 is trivially true since `FIRST(β)` does not contain any terminals.
 
 ### Conclusion
 
-**The grammar is NOT LL(1)** because:
-
-1. There is a FIRST-FOLLOW conflict for non-terminal S'
-2. FIRST(e S) ∩ FOLLOW(S') = {e} ≠ ∅
-3. The parsing table has multiple entries for M[S', e]
-
-### The Problem: Dangling Else
-
-This grammar represents the classic "dangling else" problem in programming languages. The ambiguity arises because when we see an "else", we don't know whether:
-- It belongs to the current if statement (S' → e S)
-- We should finish the current if statement without an else (S' → ε)
-
-### Making it LL(1)
-
-To make this grammar LL(1), we could:
-
-1. **Eliminate the ambiguity** by requiring explicit delimiters
-2. **Use precedence rules** (else matches the nearest unmatched if)
-3. **Restructure the grammar** to avoid the conflict
-
-**Example restructured grammar:**
-```
-S → i E t S S' | a
-S' → e S | ε
-```
-
-Could be changed to:
-```
-S → MatchedS | UnmatchedS
-MatchedS → i E t MatchedS e MatchedS | a
-UnmatchedS → i E t S | i E t MatchedS e UnmatchedS
-```
-
-This eliminates the ambiguity but makes the grammar more complex.
-
----
-
-## Summary
-
-- **LL(1) Definition:** A grammar that can be parsed deterministically with one symbol of lookahead
-- **Given Grammar:** NOT LL(1) due to FIRST-FOLLOW conflict in S' productions
-- **Reason:** The dangling else problem creates ambiguity that cannot be resolved with one symbol of lookahead 
+Since both conditions for an LL(1) grammar are satisfied for all non-terminals with multiple productions (`S` and `S'`), **the given grammar is LL(1)**. 

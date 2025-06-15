@@ -1,136 +1,110 @@
-# FIRST and FOLLOW Sets
+# FIRST and FOLLOW Sets for Grammar
 
-This document calculates the FIRST and FOLLOW sets for each non-terminal in the given grammar.
-
----
-
-## Given Grammar
+This document provides the calculation of FIRST and FOLLOW sets for each non-terminal in the following grammar:
 
 ```
-S → aAB | bA | ε
-A → aAb | ε
-B → bB | ε
+S -> aAB | bA | ε
+A -> aAb | ε
+B -> bB | ε
 ```
 
----
-
-## FIRST Sets
-
-The FIRST set of a non-terminal A is the set of terminals that can appear as the first symbol of strings derived from A.
-
-### Rules for Computing FIRST Sets
-
-1. If X is a terminal, then FIRST(X) = {X}
-2. If X → ε is a production, then add ε to FIRST(X)
-3. If X → Y₁Y₂...Yₖ is a production:
-   - Add FIRST(Y₁) - {ε} to FIRST(X)
-   - If ε ∈ FIRST(Y₁), add FIRST(Y₂) - {ε} to FIRST(X)
-   - Continue until Yᵢ where ε ∉ FIRST(Yᵢ) or all symbols are processed
-   - If ε ∈ FIRST(Yᵢ) for all i = 1 to k, then add ε to FIRST(X)
-
-### Computing FIRST Sets
-
-**FIRST(S):**
-- From S → aAB: Add {a} to FIRST(S)
-- From S → bA: Add {b} to FIRST(S)  
-- From S → ε: Add {ε} to FIRST(S)
-
-**FIRST(S) = {a, b, ε}**
-
-**FIRST(A):**
-- From A → aAb: Add {a} to FIRST(A)
-- From A → ε: Add {ε} to FIRST(A)
-
-**FIRST(A) = {a, ε}**
-
-**FIRST(B):**
-- From B → bB: Add {b} to FIRST(B)
-- From B → ε: Add {ε} to FIRST(B)
-
-**FIRST(B) = {b, ε}**
+The non-terminals are S, A, B. The terminals are a, b. ε represents the empty string. S is the start symbol.
 
 ---
 
-## FOLLOW Sets
+## 1. Calculation of FIRST Sets
 
-The FOLLOW set of a non-terminal A is the set of terminals that can appear immediately to the right of A in some sentential form.
+The FIRST set of a non-terminal X, denoted FIRST(X), is the set of terminals that can begin a string derived from X. If X can derive ε, then ε is also in FIRST(X).
 
-### Rules for Computing FOLLOW Sets
+**Rules for computing FIRST sets:**
+1.  If X is a terminal, then FIRST(X) = {X}.
+2.  If X -> ε is a production, then add ε to FIRST(X).
+3.  If X is a non-terminal and X -> Y1 Y2 ... Yk is a production:
+    *   Add FIRST(Y1) - {ε} to FIRST(X).
+    *   If ε is in FIRST(Y1), then add FIRST(Y2) - {ε} to FIRST(X).
+    *   ...
+    *   If ε is in FIRST(Y_i-1) for all i > 1, then add FIRST(Y_i) - {ε} to FIRST(X).
+    *   If ε is in FIRST(Y_i) for all i from 1 to k, then add ε to FIRST(X).
 
-1. Add $ to FOLLOW(S) where S is the start symbol
-2. If A → αBβ is a production, then add FIRST(β) - {ε} to FOLLOW(B)
-3. If A → αBβ is a production and ε ∈ FIRST(β), then add FOLLOW(A) to FOLLOW(B)
-4. If A → αB is a production, then add FOLLOW(A) to FOLLOW(B)
+**Computing FIRST sets for the given grammar:**
 
-### Computing FOLLOW Sets
+*   **FIRST(B):**
+    *   From `B -> bB`: 'b' is a terminal, so 'b' is in FIRST(B).
+    *   From `B -> ε`: ε is in FIRST(B).
+    *   Therefore, **FIRST(B) = {b, ε}**
 
-**FOLLOW(S):**
-- S is the start symbol, so add $ to FOLLOW(S)
-- No other productions have S on the right-hand side
+*   **FIRST(A):**
+    *   From `A -> aAb`: 'a' is a terminal, so 'a' is in FIRST(A).
+    *   From `A -> ε`: ε is in FIRST(A).
+    *   Therefore, **FIRST(A) = {a, ε}**
 
-**FOLLOW(S) = {$}**
+*   **FIRST(S):**
+    *   From `S -> aAB`: 'a' is a terminal, so 'a' is in FIRST(S).
+    *   From `S -> bA`: 'b' is a terminal, so 'b' is in FIRST(S).
+    *   From `S -> ε`: ε is in FIRST(S).
+    *   Therefore, **FIRST(S) = {a, b, ε}**
 
-**FOLLOW(A):**
-- From S → aAB: A is followed by B
-  - Add FIRST(B) - {ε} = {b, ε} - {ε} = {b} to FOLLOW(A)
-  - Since ε ∈ FIRST(B), add FOLLOW(S) = {$} to FOLLOW(A)
-- From S → bA: A is at the end
-  - Add FOLLOW(S) = {$} to FOLLOW(A)
-- From A → aAb: A is followed by b
-  - Add {b} to FOLLOW(A)
-
-**FOLLOW(A) = {b, $}**
-
-**FOLLOW(B):**
-- From S → aAB: B is at the end
-  - Add FOLLOW(S) = {$} to FOLLOW(B)
-- From B → bB: B is at the end
-  - Add FOLLOW(B) to FOLLOW(B) (no new information)
-
-**FOLLOW(B) = {$}**
-
----
-
-## Summary
-
-| Non-terminal | FIRST Set | FOLLOW Set |
-|--------------|-----------|------------|
-| S | {a, b, ε} | {$} |
-| A | {a, ε} | {b, $} |
-| B | {b, ε} | {$} |
+**Summary of FIRST Sets:**
+*   FIRST(S) = {a, b, ε}
+*   FIRST(A) = {a, ε}
+*   FIRST(B) = {b, ε}
 
 ---
 
-## Verification
+## 2. Calculation of FOLLOW Sets
 
-Let's verify our results with some example derivations:
+The FOLLOW set of a non-terminal X, denoted FOLLOW(X), is the set of terminals that can appear immediately to the right of X in some sentential form. If X can be the rightmost symbol in some sentential form, then $ (the end-of-input marker) is in FOLLOW(X). ε is never in a FOLLOW set.
 
-**Example 1:** S ⇒ aAB ⇒ aεB ⇒ aB ⇒ abB ⇒ abε ⇒ ab
-- First symbol: a ✓ (a ∈ FIRST(S))
-- A is followed by B, and B can start with b or ε, so A can be followed by b or $ ✓
+**Rules for computing FOLLOW sets:**
+1.  Place $ in FOLLOW(S), where S is the start symbol.
+2.  If there is a production A -> αBβ, then add FIRST(β) - {ε} to FOLLOW(B).
+3.  If there is a production A -> αB, or a production A -> αBβ where ε is in FIRST(β), then add FOLLOW(A) to FOLLOW(B).
 
-**Example 2:** S ⇒ bA ⇒ baAb ⇒ baaAbb ⇒ baaεbb ⇒ baabb
-- First symbol: b ✓ (b ∈ FIRST(S))
-- A is followed by b ✓ (b ∈ FOLLOW(A))
+These rules are applied iteratively until no more changes occur in any FOLLOW set.
 
-**Example 3:** S ⇒ ε
-- First symbol: ε ✓ (ε ∈ FIRST(S))
+**Initial FOLLOW sets:**
+*   FOLLOW(S) = {$}
+*   FOLLOW(A) = {}
+*   FOLLOW(B) = {}
 
-**Example 4:** S ⇒ aAB ⇒ aaAbB ⇒ aaεbB ⇒ aabB ⇒ aabε ⇒ aab
-- A is followed by b ✓ (b ∈ FOLLOW(A))
-- B is followed by end of string ✓ ($ ∈ FOLLOW(B))
+**Iterative Calculation:**
 
-All verifications confirm our FIRST and FOLLOW sets are correct.
+**Applying rules to productions:**
 
----
+1.  **S -> aAB**
+    *   For non-terminal A: β is B.
+        *   Add FIRST(B) - {ε} = {b} to FOLLOW(A). So, FOLLOW(A) becomes {b}.
+        *   Since ε ∈ FIRST(B), add FOLLOW(S) = {$} to FOLLOW(A). So, FOLLOW(A) becomes {b, $}.
+    *   For non-terminal B: B is at the end (A -> αB form, where A=S, α=aA).
+        *   Add FOLLOW(S) = {$} to FOLLOW(B). So, FOLLOW(B) becomes {$}.
 
-## Applications
+2.  **S -> bA**
+    *   For non-terminal A: A is at the end (A -> αB form, where A=S, α=b).
+        *   Add FOLLOW(S) = {$} to FOLLOW(A). FOLLOW(A) is {b, $} (no change).
 
-FIRST and FOLLOW sets are used in:
+3.  **S -> ε**
+    *   This production does not directly contribute to FOLLOW sets of other non-terminals based on these rules.
 
-1. **LL(1) Parser Construction:** To build predictive parsing tables
-2. **Error Recovery:** To determine valid continuation points
-3. **Grammar Analysis:** To check if a grammar is LL(1)
-4. **Syntax Error Detection:** To identify unexpected tokens
+4.  **A -> aAb**
+    *   For non-terminal A (the one on the RHS): β is 'b'.
+        *   Add FIRST(b) - {ε} = {b} to FOLLOW(A). FOLLOW(A) is {b, $} (no change).
+    *   (Note: 'b' is a terminal, we are finding FOLLOW sets for non-terminals).
 
-The computed sets show that this grammar can potentially be used for LL(1) parsing, as we can distinguish between alternatives based on the first symbol of input. 
+5.  **A -> ε**
+    *   This production does not directly contribute to FOLLOW sets of other non-terminals.
+
+6.  **B -> bB**
+    *   For non-terminal B (the one on the RHS): B is at the end (A -> αB form, where A=B_LHS, α=b).
+        *   Add FOLLOW(B_LHS) to FOLLOW(B_RHS). Since FOLLOW(B) is currently {$}, this rule implies FOLLOW(B) includes elements already in FOLLOW(B), so no new terminals are added by this step alone unless FOLLOW(B) changes due to other rules.
+
+**Current sets after one pass:**
+*   FOLLOW(S) = {$}
+*   FOLLOW(A) = {b, $}
+*   FOLLOW(B) = {$}
+
+Further iterations will not change these sets as all rules have been applied and their consequences incorporated.
+
+**Summary of FOLLOW Sets:**
+*   FOLLOW(S) = {$}
+*   FOLLOW(A) = {b, $}
+*   FOLLOW(B) = {$} 

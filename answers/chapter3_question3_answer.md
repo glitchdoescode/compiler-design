@@ -1,216 +1,95 @@
 # Eliminating Left Recursion
 
-This document demonstrates the elimination of left recursion from the given grammar.
+This document provides a step-by-step solution for eliminating left recursion from the given grammar.
+
+**Original Grammar:**
+```
+S -> Aa | b
+A -> Ac | Sd | ε 
+```
 
 ---
 
-## Given Grammar
+## Analysis of the Grammar
 
+First, we need to identify the type of left recursion present.
+
+1.  **Direct Left Recursion:** The production `A -> Ac` is a direct left recursion because the non-terminal `A` on the left-hand side is also the leftmost symbol on the right-hand side.
+2.  **Indirect Left Recursion:** The grammar also contains an indirect (or mutual) left recursion between `S` and `A`.
+    *   `S` produces a string starting with `A` (from `S -> Aa`).
+    *   `A` produces a string starting with `S` (from `A -> Sd`).
+    *   This creates a cycle `S => Aa => Sda`, which shows that `S` derives a string starting with itself through `A`.
+
+To eliminate left recursion from a grammar, we must resolve both indirect and direct forms.
+
+---
+
+## Step 1: Eliminate Indirect Left Recursion
+
+The standard algorithm to eliminate left recursion requires that the non-terminals be ordered, say A₁, A₂, ..., Aₙ. We then process them in order. For the `i`-th non-terminal, we substitute in the productions for all preceding non-terminals Aⱼ (where j < i) to reveal any hidden direct left recursion.
+
+Let's establish an order for our non-terminals: `S, A`.
+
+**Processing S (i=1):**
+The productions for `S` are `S -> Aa | b`. They do not have any left recursion yet. We leave them as they are.
+
+**Processing A (i=2):**
+The productions for `A` are `A -> Ac | Sd | ε`.
+The production `A -> Sd` contains `S`, a preceding non-terminal. We must substitute the productions of `S` into this rule.
+
+Substitute `S -> Aa | b` into `A -> Sd`:
+*   `A -> (Aa)d | (b)d`
+*   `A -> Aad | bd`
+
+Now, the set of productions for `A` becomes:
 ```
-S → Aa | b
-A → Ac | Sd | ε 
-```
-
-## Analysis of Left Recursion
-
-The given grammar contains **indirect left recursion**:
-- `A → Sd` and `S → Aa` create a cycle: A ⇒ Sd ⇒ Aad
-- This means A can derive a string starting with A, which constitutes left recursion.
-
-## Step-by-Step Elimination
-
-### Step 1: Arrange Non-terminals in Order
-
-Let's order the non-terminals as: **S, A** (i.e., S = A₁, A = A₂)
-
-### Step 2: Process Non-terminal S (i = 1)
-
-For S, there are no productions of the form S → Sα, so no immediate left recursion to eliminate.
-
-Current productions for S:
-```
-S → Aa | b
-```
-
-### Step 3: Process Non-terminal A (i = 2)
-
-For A, we need to eliminate any productions of the form A → Sγ (since S comes before A in our ordering).
-
-**Current A productions:**
-```
-A → Ac | Sd | ε
-```
-
-**Substitute S productions into A → Sd:**
-
-Since S → Aa | b, we replace A → Sd with:
-- A → (Aa)d = A → Aad  
-- A → bd
-
-**Updated A productions:**
-```
-A → Ac | Aad | bd | ε
+A -> Ac | Aad | bd | ε
 ```
 
-### Step 4: Eliminate Immediate Left Recursion from A
+After this substitution, we can see that the grammar now has two direct left-recursive productions for `A`: `A -> Ac` and `A -> Aad`.
 
-Now A has immediate left recursion in the form:
+The grammar, after resolving the indirect recursion, is:
 ```
-A → Ac | Aad | bd | ε
-```
-
-This is in the form: A → Aα₁ | Aα₂ | β₁ | β₂
-
-Where:
-- α₁ = c
-- α₂ = ad  
-- β₁ = bd
-- β₂ = ε
-
-**Apply the transformation:**
-```
-A → β₁A' | β₂A'
-A' → α₁A' | α₂A' | ε
+S -> Aa | b
+A -> Ac | Aad | bd | ε
 ```
 
-This gives us:
-```
-A → bdA' | εA'
-A' → cA' | adA' | ε
-```
+---
 
-Simplifying A → εA' to A → A':
+## Step 2: Eliminate Direct Left Recursion
+
+Now we eliminate the direct left recursion from the `A` productions. The general form for eliminating direct left recursion from `A -> Aα₁ | Aα₂ | ... | β₁ | β₂ | ...` is:
 ```
-A → bdA' | A'
-A' → cA' | adA' | ε
+A  -> β₁A' | β₂A' | ...
+A' -> α₁A' | α₂A' | ... | ε
 ```
 
-Since A → A' means A can derive A' directly, we can further simplify by noting that A → A' | bdA' is equivalent to A → bdA' | A', but we need to be careful about the ε production.
+For our `A` productions: `A -> Ac | Aad | bd | ε`
+*   The recursive parts (`Aα`) are: `Ac` and `Aad`. So, `α₁ = c` and `α₂ = ad`.
+*   The non-recursive parts (`β`) are: `bd` and `ε`. So, `β₁ = bd` and `β₂ = ε`.
 
-Let's reconsider: since one of our β values is ε, we get:
-```
-A → bdA' | A'
-A' → cA' | adA' | ε
-```
+Applying the transformation rule:
 
-But A → A' with A' → ε means A → ε, which we already had. So the correct transformation is:
-```
-A → bdA' | ε
-A' → cA' | adA' | ε
-```
+**New productions for `A`:**
+`A -> β₁A' | β₂A'`
+*   `A -> bdA'`
+*   `A -> εA'` which simplifies to `A -> A'`
+So, the `A` productions are: `A -> bdA' | A'`
 
-Wait, let me recalculate this more carefully.
+**New productions for `A'`:**
+`A' -> α₁A' | α₂A' | ε`
+*   `A' -> cA' | adA' | ε`
 
-**Original A productions after substitution:**
-```
-A → Ac | Aad | bd | ε
-```
+---
 
-**Separating left-recursive and non-left-recursive productions:**
-- Left-recursive: A → Ac, A → Aad
-- Non-left-recursive: A → bd, A → ε
+## Final Resulting Grammar
 
-**Applying the standard transformation:**
-```
-A → bdA' | εA'
-A' → cA' | adA' | ε
-```
-
-Since εA' = A', we get:
-```
-A → bdA' | A'
-A' → cA' | adA' | ε
-```
-
-But this still has the issue that A → A' with A' potentially deriving ε. Let's use a cleaner approach:
+Combining everything, the final grammar with all left recursion eliminated is:
 
 ```
-A → bdA' | ε
-A' → cA' | adA' | ε
+S  -> Aa | b
+A  -> bdA' | A'
+A' -> cA' | adA' | ε
 ```
 
-Actually, the standard algorithm gives us:
-```
-A → bdA' | εA'
-A' → cA' | adA' | ε
-```
-
-Since εA' = A', this becomes:
-```
-A → bdA' | A'
-A' → cA' | adA' | ε
-```
-
-To avoid the issue with A → A', let's be more systematic. The correct transformation when ε is one of the non-left-recursive productions is:
-
-```
-A → bdA' | ε  
-A' → cA' | adA' | ε
-```
-
-## Final Grammar (After Eliminating Left Recursion)
-
-```
-S → Aa | b
-A → bdA' | ε
-A' → cA' | adA' | ε
-```
-
-## Verification
-
-Let's verify that this grammar generates the same language and has no left recursion:
-
-1. **No Left Recursion:** 
-   - S productions: S → Aa | b (no left recursion)
-   - A productions: A → bdA' | ε (no left recursion)  
-   - A' productions: A' → cA' | adA' | ε (A' → cA' and A' → adA' are left recursive!)
-
-Wait, I made an error. Let me recalculate:
-
-**After substitution, A productions are:**
-```
-A → Ac | Aad | bd | ε
-```
-
-**Applying left recursion elimination:**
-- Left-recursive parts: Ac, Aad (so α₁ = c, α₂ = ad)
-- Non-left-recursive parts: bd, ε (so β₁ = bd, β₂ = ε)
-
-**Transformation:**
-```
-A → β₁A' | β₂A'  →  A → bdA' | εA'
-A' → α₁A' | α₂A' | ε  →  A' → cA' | adA' | ε
-```
-
-Since εA' = A':
-```
-A → bdA' | A'
-A' → cA' | adA' | ε
-```
-
-The issue is A → A'. In the standard algorithm, when ε is one of the β's, we get:
-
-```
-A → bdA' | ε
-A' → cA' | adA' | ε
-```
-
-## Correct Final Grammar
-
-```
-S → Aa | b
-A → bdA' | ε
-A' → cA' | adA' | ε
-```
-
-## Verification of Correctness
-
-1. **No Left Recursion:** All productions now have terminals or different non-terminals as the first symbol on the right-hand side.
-
-2. **Language Preservation:** The transformed grammar generates the same language as the original grammar.
-
-3. **Derivation Example:** 
-   - Original: S ⇒ Aa ⇒ Sda ⇒ bda
-   - New: S ⇒ Aa ⇒ bdA'a ⇒ bdεa ⇒ bda ✓
-
-The left recursion has been successfully eliminated from the grammar. 
+This new grammar is equivalent to the original grammar (generates the same language) but is not left-recursive, making it suitable for use with top-down parsing algorithms. 
