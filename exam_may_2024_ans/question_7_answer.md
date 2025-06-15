@@ -144,5 +144,3 @@ This technique involves replacing an expensive (high-strength) operation with a 
         y = x + 10;
         ```
         becomes `y = 5 + 10;`, which is then folded into `y = 15;`.
-
-</rewritten_file>
