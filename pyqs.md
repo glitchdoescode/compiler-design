@@ -71,8 +71,8 @@ This is a major chapter covering grammars, parsing techniques, and table constru
 **3. Eliminating Left Recursion**
 *   **Question:** Eliminate the left recursion from the following grammar:
     ```
-    S -> A a | b
-    A -> A c | S d | ε 
+    S -> Aa | b
+    A -> Ac | Sd | ε 
     ```
 *(This is a practical problem from the May 2024 paper.)*
 
