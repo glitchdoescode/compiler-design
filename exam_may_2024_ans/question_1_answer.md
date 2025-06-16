@@ -6,8 +6,8 @@
 
 The compilation process is a sequence of phases that transform a high-level source program into a low-level target program (e.g., machine code). This process is broadly divided into two main parts: the **Analysis (Front-end)** and the **Synthesis (Back-end)**.
 
-*   **Analysis (Front-end):** This part breaks down the source program into its constituent pieces and creates an intermediate representation of the source program. It also manages the symbol table, which stores information about identifiers used in the program. The front-end is largely independent of the target machine.
-*   **Synthesis (Back-end):** This part takes the intermediate representation and the symbol table from the analysis phase and constructs the desired target program. The back-end is dependent on the target machine's architecture.
+*   **Analysis (Front-end):** This part breaks down the source program into its constituent pieces and creates an intermediate representation (IR). It includes lexical, syntax, and semantic analysis, culminating in the generation of the IR. It also manages the symbol table. The front-end is largely independent of the target machine.
+*   **Synthesis (Back-end):** This part takes the intermediate representation from the front-end and constructs the desired target program. It includes code optimization and code generation. The back-end is dependent on the target machine's architecture.
 
 Let's trace the compilation of the input `a = (b + c) * (b + c) * 2` through each phase.
 
@@ -50,10 +50,6 @@ The semantic analyzer uses the syntax tree and the symbol table to check the sou
 *   **Type Checking:** It checks if the operands of `+` and `*` are compatible (e.g., both numeric). Let's assume `b` and `c` are floats. The analyzer infers that the result of `b+c` is a float. The literal `2` is an integer, so the analyzer may insert a type conversion (coercion) to turn `2` into `2.0` (float) before the final multiplication.
 *   **Symbol Table:** The types of all identifiers are checked and recorded.
 
----
-
-### Synthesis Phases (Back-end)
-
 #### 4. Intermediate Code Generation
 After semantic analysis, the compiler generates an explicit low-level or machine-like intermediate representation. **Three-Address Code (TAC)** is a common form. This representation is easy to produce and easy to translate into the target program.
 
@@ -67,6 +63,10 @@ t4 = int_to_float(2)
 t5 = t3 * t4
 a = t5
 ```
+
+---
+
+### Synthesis Phases (Back-end)
 
 #### 5. Code Optimization
 This phase attempts to improve the intermediate code to result in a better target program—one that is faster, shorter, or uses less power.
